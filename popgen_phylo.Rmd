@@ -14,4 +14,30 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In this tutorial..
+In this tutorial...
+
+Load the packages you need.
+```{r, echo = TRUE, results = "hide", warning = FALSE, message = FALSE}
+library(phangorn)
+```
+
+Read in one of the output files from the `ipyrad` assembly.
+```{r}
+dat <- read.phyDat("data/ubrucei.u.snps.phy", format="phy", type="DNA")
+```
+
+Create a distance matrix.
+```{r}
+dm.dat <- dist.ml(dat, exclude='pairwise')
+```
+
+Create a neighbor-joining tree for a quick peek at the data.
+```{r}
+treeNJ.dat <- NJ(dm.dat)
+```
+
+```{r}
+# plot tree as unrooted
+plot(treeNJ.dat, cex=, type='u')
+```
+
