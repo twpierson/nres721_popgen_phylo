@@ -20,11 +20,12 @@ Load the packages you need.
 ```{r, echo = TRUE, results = "hide", warning = FALSE, message = FALSE}
 library(phangorn)
 library(adegenet)
+library(hierfstat)
 ```
 
 Read in one of the output files from the `ipyrad` assembly.
 ```{r}
-ubrucei_phydat <- read.phyDat("data/ubrucei.u.snps.phy", format="phy", type="DNA")
+ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.u.snps.phy", format="phy", type="DNA")
 ```
 
 Create a distance matrix.
@@ -40,16 +41,16 @@ treeNJ.dat <- NJ(dm.dat)
 ```{r}
 # plot tree as unrooted
 plot.phylo(treeNJ.dat, cex=0.9, type='u',
-     tip.col = c(rep("green",3), rep("red",3), rep("cornflowerblue",3)),
+     tip.col = c(rep("green",3), rep("red",3), rep("cornflowerblue",3), rep("purple",3)),
      font = 2, x.lim = c(-0.1, 0.4))
 ```
 
 Let's try a discriminant analysis of principle components (DAPC). For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
 
 We'll read in another output file from `ipyrad`. 
-```{r, results = "hide", warning = FALSE, message = FALSE}
-ubrucei_strdat <- read.structure(file="data/ubrucei.str",
-                         n.ind = 9, n.loc = 889,
+```{r results = "hide", warning = FALSE, message = FALSE}
+ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
+                         n.ind = 12, n.loc = 1131,
                          onerowperind = FALSE, col.lab=1,
                          col.pop=0, NA.char="-9",col.other=0,
                          row.marknames=0)
@@ -57,19 +58,26 @@ ubrucei_strdat <- read.structure(file="data/ubrucei.str",
 
 Let's determine the number of clusters.
 ```{r}
-ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 20, max.n.clust = 5, n.clust = 3)
+ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 40, max.n.clust = 5, n.clust = 4)
 ```
 
 Do the DAPC. 
 ```{r}
-ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 20, n.da = 2)
+ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 40, n.da = 2)
 ```
 
 Plot results in a Structure-like barplot.
 ```{r}
 par(xpd = TRUE)
 compoplot(ubrucei_dapc, xlab="individuals", 
-          col = c("red","cornflowerblue","green"), legend = FALSE, show.lab = TRUE)
-legend(1, 1.1, legend=paste("Cluster", 1:3), fill=c("red","cornflowerblue","green"), ncol = 3, cex = 0.7)
+          col = c("red","cornflowerblue","green","purple"), legend = FALSE, show.lab = TRUE)
+legend(3.1, 1.1, legend=paste("Cluster", 1:3), fill=c("red","cornflowerblue","green","purple"), ncol = 3, cex = 0.7)
+```
+
+Calculate pairwise F~st~.
+```{r warning = FALSE, comment = NA}
+ubrucei_strdat$pop <- as.factor(c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)))
+
+(matFst <- pairwise.fst(ubrucei_strdat,res.type="matrix"))
 ```
 
