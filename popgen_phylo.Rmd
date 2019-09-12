@@ -69,11 +69,11 @@ The first step of the DAPC is to estimate the number of clusters. We'll use the 
 ubrucei_clust <- find.clusters(ubrucei_strdat, max.n.clust = 5)
 ```
 
-<center>![](figs/PC_Plot.jpeg){ width=70% }</center>
+<center>![](figs/PC_Plot.jpeg){ width=40% }</center>
 
 It looks like there's really no plateau of cumulative variance, so we can retain all 10 PCs. Enter "10" into the prompt.
 
-<center>![](figs/clust_Plot.jpeg){ width=70% }</center>
+<center>![](figs/clust_Plot.jpeg){ width=40% }</center>
 
 The BIC continues to drop through K = 4, but then levels off. We'll enter "4" into the prompt.
 
