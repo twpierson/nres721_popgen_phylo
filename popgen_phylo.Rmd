@@ -14,40 +14,47 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In this tutorial, we'll conduct some simple population genomic and phylogenomic analyses using the *Urspelerpes* data we assembled in the last tutorial. 
+In this tutorial, we'll discuss and conduct some simple population genomic and phylogenomic analyses to probe our the *Urspelerpes* dataset we assembled in the last tutorial. We'll do this entirely in `R`.
 
 Load the packages you need.
 ```{r, echo = TRUE, results = "hide", warning = FALSE, message = FALSE}
 library(phangorn)
 library(adegenet)
 library(hierfstat)
+library(scales)
 ```
 
-Read in one of the output files from the `ipyrad` assembly.
+Let's read in one of the output files from the `ipyrad` assembly. The file extension`u.snps.phy` tells us that this is a PHYLIP file consisting of one random SNP per locus.
+
 ```{r}
 ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.u.snps.phy", format="phy", type="DNA")
 ```
 
-Create a distance matrix.
+<div class="alert alert-info">
+  <strong>Discussion:</strong> Why might we only include one SNP per locus?
+</div>
+
+From this data, we'll first create a distance matrix.
 ```{r}
 dm.dat <- dist.ml(ubrucei_phydat, exclude='pairwise')
 ```
 
-Create a neighbor-joining tree for a quick peek at the data.
+From this distance matrix, we'll create a neighbor-joining tree for a quick peek at the data.
 ```{r}
 treeNJ.dat <- NJ(dm.dat)
 ```
 
+And we'll now plot that as an unrooted tree, coloring the tips to match the collection locality of each sample.
 ```{r}
-# plot tree as unrooted
 plot.phylo(treeNJ.dat, cex=0.9, type='u',
      tip.col = c(rep("green",3), rep("red",3), rep("cornflowerblue",3), rep("purple",3)),
      font = 2, x.lim = c(-0.1, 0.4))
 ```
 
-Let's try a discriminant analysis of principle components (DAPC). For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
+Just examining this visually, it seems to make sense. Samples from each population are clustering together. But this is just a qualitative evaluation. Next, we'll try a method to estimate how many "populations" or "clusters" exist among these data. There are a variety of programs—with a diversity of underlying philosophies and statistical methods—to conduct this kind of analysis, but today, we'll try a [discriminant analysis of principle components (DAPC)](https://bmcgenet.biomedcentral.com/articles/10.1186/1471-2156-11-94_). This method estimates the number of "genetic clusters" in the data and then estimates probabilistic individual assignments to each cluster. For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
 
-We'll read in another output file from `ipyrad`. 
+For this analysis, we'll read in a different output file from `ipyrad`. The file extension (`.str`) tells us that this is a Structure-formatted output file, and it contains data for all variable sites. We need to provide the `read.structure()` function a few more pieces of information (e.g., number of individuals, number of loci), which we can glean from the summary statistics file we viewed in the last tutorial.
+
 ```{r results = "hide", warning = FALSE, message = FALSE}
 ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
                          n.ind = 12, n.loc = 1131,
@@ -56,14 +63,27 @@ ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
                          row.marknames=0)
 ```
 
-Let's determine the number of clusters.
-```{r}
-ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 40, max.n.clust = 5, n.clust = 4)
+The first step of the DAPC is to estimate the number of clusters. We'll use the `find.clusters()` function to do this, and it'll display interactive plots to help use choose the numbers of PCs to retain and the number of clusters.
+
+```{r, eval = FALSE}
+ubrucei_clust <- find.clusters(ubrucei_strdat, max.n.clust = 5)
 ```
 
-Do the DAPC. 
+<center>![](figs/PC_Plot.jpeg){ width=70% }</center>
+
+It looks like there's really no plateau of cumulative variance, so we can retain all 10 PCs. Enter "10" into the prompt.
+
+<center>![](figs/clust_Plot.jpeg){ width=70% }</center>
+
+The BIC continues to drop through K = 4, but then levels off. We'll enter "4" into the prompt.
+
 ```{r}
-ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 40, n.da = 2)
+ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 10, n.clust = 4)
+```
+
+Now, we'll conduct the discriminant analysis. Because we have a small number of PCs and clusters, we'll retain all of them here.
+```{r}
+ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 10, n.da = 3)
 ```
 
 Plot results in a Structure-like barplot.
@@ -74,10 +94,63 @@ compoplot(ubrucei_dapc, xlab="individuals",
 legend(3.1, 1.1, legend=paste("Cluster", 1:3), fill=c("red","cornflowerblue","green","purple"), ncol = 3, cex = 0.7)
 ```
 
-Calculate pairwise F~st~.
+Let's calculate some common summary statistics to characterize genetic diversity within and among these clusters. First, we can calculate pairwise F~st~ between each cluster.
+
 ```{r warning = FALSE, comment = NA}
 ubrucei_strdat$pop <- as.factor(c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)))
 
 (matFst <- pairwise.fst(ubrucei_strdat,res.type="matrix"))
+```
+
+Now, we can calculate some basic measures of genetic diversity. Let's first separate our data by population.
+
+```{r}
+pop1 <- ubrucei_strdat[ubrucei_strdat$pop == 1]
+pop2 <- ubrucei_strdat[ubrucei_strdat$pop == 2]
+pop3 <- ubrucei_strdat[ubrucei_strdat$pop == 3]
+pop4 <- ubrucei_strdat[ubrucei_strdat$pop == 4]
+```
+
+
+```{r, eval = FALSE, echo = FALSE}
+pop1_summary <- summary(pop1)
+pop2_summary <- summary(pop2)
+pop3_summary <- summary(pop3)
+pop4_summary <- summary(pop4)
+
+mean(pop1_summary$Hexp[!is.na(pop1_summary$Hobs)])
+mean(pop1_summary$Hobs[!is.na(pop1_summary$Hobs)])
+
+mean(pop2_summary$Hexp[!is.na(pop2_summary$Hobs)])
+mean(pop2_summary$Hobs[!is.na(pop2_summary$Hobs)])
+
+```
+
+We can test for isolation-by-distance using a Mantel test. Because this is a rare, sensitive species, we won't use real coordinates, but I'll (coursely) preserve the spatial relationship between sites and center them over [Sanford Stadium (Go Dawgs)](https://goo.gl/maps/9FsrhfEz9wj9ULPU9). Below are our artificial coordinates; note that for all samples within a site, the coordinates are the same.
+
+```{r}
+coords <- rbind(c(33.949966,-83.374063), c(33.949966,-83.374063), c(33.949966,-83.374063),
+                c(33.944970, -83.373114), c(33.944970, -83.373114), c(33.944970, -83.373114),
+                c(33.950171, -83.373929), c(33.950171, -83.373929), c(33.950171, -83.373929),
+                c(33.949900, -83.372304), c(33.949900, -83.372304), c(33.949900, -83.372304))
+```
+
+Here's a quick visualization of their positions:
+```{r, echo = FALSE}
+plot(coords[,2],coords[,1], xlim = c(min(coords[,2])-0.0005, max(coords[,2]+0.0005)), 
+     ylim = c(min(coords[,1])-0.00025, max(coords[,1]+0.00025)), pch = 19, cex = 2,
+     col = c(rep("green",3), rep("red",3), rep("cornflowerblue",3), rep("purple",3)),
+     xlab = "longitude", ylab = "latitude")
+text(x=coords[c(1,4,7,10),2], y = coords[c(1,4,7,10),1], col = "white", labels = c(1,2,3,4))
+```
+
+...here is the actual Mantel test.
+```{r}
+mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords))
+plot(mtest, nclass = 30)
+
+plot(dist(coords),dist(ubrucei_strdat), pch = 19, col = alpha("black",0.3),
+     xlab = "geographic distance", ylab = "genetic distance")
+
 ```
 
