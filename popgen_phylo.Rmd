@@ -14,8 +14,18 @@ author: "Todd W. Pierson"
 date: "23 October 2019"
 ---
 
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(width=200)
 ```
 
 <div class="alert alert-danger">
@@ -96,6 +106,7 @@ ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
 The first step of the DAPC is to estimate the number of clusters. We'll use the `find.clusters()` function to do this, and it'll display interactive plots to help use choose the numbers of PCs to retain and the number of clusters.
 
 ```{r, eval = FALSE}
+set.seed(1234)
 ubrucei_clust <- find.clusters(ubrucei_strdat, max.n.clust = 5)
 ```
 
@@ -108,6 +119,7 @@ This plot shows the cumulative variance explained by including progressively mor
 This plot helps us evaluate how many "clusters" best represent our data; here, we're looking for when the BIC value is minimized (or stops decreasing dramatically). The BIC value continues to drop through *k* = 4, but then levels off. Go ahead and enter "4" into the prompt.
 
 ```{r}
+set.seed(1234)
 ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 10, n.clust = 4)
 ```
 
@@ -121,9 +133,9 @@ We can glean lots of interesting information from this analysis. Perhaps the mos
 ```{r}
 par(xpd = TRUE)
 compoplot(ubrucei_dapc, xlab="individuals", 
-          col = c("green","cornflowerblue","purple","red"), legend = FALSE,
+          col = c("red","cornflowerblue","green","purple"), legend = FALSE,
           show.lab = TRUE)
-legend(3.1, 1.1, legend=paste("Cluster", 1:4), fill=c("green","cornflowerblue","purple","red"), ncol = 3, cex = 0.7)
+legend(3.1, 1.1, legend=paste("Cluster", 1:4), fill=c("red","cornflowerblue","green","purple"), ncol = 4, cex = 0.7)
 ```
 
 <div class="alert alert-info">
@@ -142,32 +154,56 @@ ubrucei_strdat$pop <- as.factor(c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)))
 (matFst <- pairwise.fst(ubrucei_strdat,res.type="matrix"))
 ```
 
-Now, we can calculate some basic measures of genetic diversity. Let's first separate our data by population.
+<div class="alert alert-info">
+  <strong>Discussion:</strong> Are these results consistent with our visualization in the neighbor-joining tree?
+</div>
 
-```{r}
-pop1 <- ubrucei_strdat[ubrucei_strdat$pop == 1]
-pop2 <- ubrucei_strdat[ubrucei_strdat$pop == 2]
-pop3 <- ubrucei_strdat[ubrucei_strdat$pop == 3]
-pop4 <- ubrucei_strdat[ubrucei_strdat$pop == 4]
+Now, let's calculate some basic measures of genetic diversity. Let's use the expected (intrapopulation) heterozygosity (i.e., H~s~ or D) and observed heterozygosity (H~o~) to get a glimpse of this. We can use the `basic.stats()` function in the `hierfstat` package.
+
+```{r, fig.height = 3, fig.align = "center", width = 200}
+ubrucei_stats <- basic.stats(ubrucei_strdat,diploid=TRUE,digits=3)
 ```
 
-
-```{r, eval = FALSE, echo = FALSE}
-pop1_summary <- summary(pop1)
-pop2_summary <- summary(pop2)
-pop3_summary <- summary(pop3)
-pop4_summary <- summary(pop4)
-
-mean(pop1_summary$Hexp[!is.na(pop1_summary$Hobs)])
-mean(pop1_summary$Hobs[!is.na(pop1_summary$Hobs)])
-
-mean(pop2_summary$Hexp[!is.na(pop2_summary$Hobs)])
-mean(pop2_summary$Hobs[!is.na(pop2_summary$Hobs)])
-
+We can plot H~s~ for each population. 
+```{r, fig.height = 3, fig.align = "center", width = 200}
+par(mfrow=c(1,4))
+hist(ubrucei_stats$Hs[,1], col = "green", main = "site 1", 
+     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,1], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Hs[,2], col = "red", main = "site 2", 
+     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,2], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Hs[,3], col = "cornflowerblue", main = "site 3", 
+     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,3], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Hs[,4], col = "purple", main = "site 4", 
+     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,4], na.rm = TRUE), 2)))
 ```
+
+... and H~o~ for each population.
+```{r, fig.height = 3, fig.align = "center", width = 200}
+par(mfrow=c(1,4))
+hist(ubrucei_stats$Ho[,1], col = "green", main = "site 1", 
+     ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,1], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Ho[,2], col = "red", main = "site 2", 
+     ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,2], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Ho[,3], col = "cornflowerblue", main = "site 3", 
+     ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,3], na.rm = TRUE), 2)))
+hist(ubrucei_stats$Ho[,4], col = "purple", main = "site 4", 
+     ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
+text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,4], na.rm = TRUE), 2)))
+```
+
+<div class="alert alert-info">
+  <strong>Discussion:</strong> What patterns do you detect here?
+</div>
+
 ## Isolation-by-distance
-
-We can test for isolation-by-distance using a Mantel test. Because this is a rare, sensitive species, we won't use real coordinates, but I'll (coursely) preserve the spatial relationship between sites and center them over [Sanford Stadium (Go Dawgs)](https://goo.gl/maps/9FsrhfEz9wj9ULPU9). Below are our artificial coordinates; note that for all samples within a site, the coordinates are the same.
+We may wonder whether the apparent differention between sampling localities can be explained by geographic distance. We can test for isolation-by-distance using a Mantel test. Because this is a rare, sensitive species, we won't use real coordinates, but I'll (generally) preserve the spatial relationship between sites and center them over [Sanford Stadium (Go Dawgs)](https://goo.gl/maps/9FsrhfEz9wj9ULPU9). Below are our artificial coordinates; note that for all samples within a site, the coordinates are the same.
 
 ```{r}
 coords <- rbind(c(33.949966,-83.374063), c(33.949966,-83.374063), c(33.949966,-83.374063),
@@ -187,11 +223,24 @@ text(x=coords[c(1,4,7,10),2], y = coords[c(1,4,7,10),1], col = "white", labels =
 
 ...here is the actual Mantel test.
 ```{r}
-mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords))
+(mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords)))
 plot(mtest, nclass = 30)
+```
 
+<div class="alert alert-info">
+  <strong>Discussion:</strong> What do these results mean?
+</div>
+
+We can visualize this relationship by plotting geographic distance against genetic distance.
+```{r}
 plot(dist(coords),dist(ubrucei_strdat), pch = 19, col = alpha("black",0.3),
      xlab = "geographic distance", ylab = "genetic distance")
 
 ```
 
+## Optional exercise
+Now that we've completed these analyses using our de novo assembly, repeat them using the reference-based assembly.
+
+<div class="alert alert-info">
+  <strong>Discussion:</strong> Do these results differ meaningfully?
+</div>
