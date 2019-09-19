@@ -158,7 +158,7 @@ ubrucei_strdat$pop <- as.factor(c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)))
   <strong>Discussion:</strong> Are these results consistent with our visualization in the neighbor-joining tree?
 </div>
 
-Now, let's calculate some basic measures of genetic diversity. Let's use the expected (intrapopulation) heterozygosity (i.e., H~s~ or D) and observed heterozygosity (H~o~) to get a glimpse of this. We can use the `basic.stats()` function in the `hierfstat` package.
+Now, let's calculate some basic measures of genetic diversity. Let's use the within-population gene diversity (i.e., H~s~) and observed heterozygosity (H~o~) to get a glimpse of this. We can use the `basic.stats()` function in the `hierfstat` package.
 
 ```{r, fig.height = 3, fig.align = "center", width = 200}
 ubrucei_stats <- basic.stats(ubrucei_strdat,diploid=TRUE,digits=3)
