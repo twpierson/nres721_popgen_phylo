@@ -168,16 +168,16 @@ We can plot H~s~ for each population.
 ```{r, fig.height = 3, fig.align = "center", width = 200}
 par(mfrow=c(1,4))
 hist(ubrucei_stats$Hs[,1], col = "green", main = "site 1", 
-     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+     ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,1], na.rm = TRUE), 2)))
 hist(ubrucei_stats$Hs[,2], col = "red", main = "site 2", 
-     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+     ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,2], na.rm = TRUE), 2)))
 hist(ubrucei_stats$Hs[,3], col = "cornflowerblue", main = "site 3", 
-     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+     ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,3], na.rm = TRUE), 2)))
 hist(ubrucei_stats$Hs[,4], col = "purple", main = "site 4", 
-     ylab = "# SNPs", xlab = "expected heterozygosity", ylim = c(0,1000))
+     ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,4], na.rm = TRUE), 2)))
 ```
 
