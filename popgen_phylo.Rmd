@@ -29,13 +29,13 @@ options(width=200)
 ```
 
 <div class="alert alert-danger">
-  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system.
+  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system. **Students, you can download all of the data we'll use from the `/data` directory in the Github repository [here](https://github.com/twpierson/nres721_popgen_phylo).**
 </div>
 
 ## Introduction
-In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (*Urspelerpes brucei*) in `ipyrad`. We ended up with a total of 948 loci (and 1131 SNPs) in our de novo assembly and 641 loci (and 753 SNPs) in our reference-based assembly. As you've discussed earlier in the semester, there are a *multitude* of ways in which you can analyze these kinds of population genetic data. Today, we'll apply some of the methods you've already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as "large"!—may present unique challenges. Today, we'll work entirely in `R`.
+In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (*Urspelerpes brucei*) in `ipyrad`. We ended up with a total of 948 loci (and 1131 SNPs) in our *de novo* assembly and 641 loci (and 753 SNPs) in our reference-based assembly. As you've discussed earlier in the semester, there are many inferences you can make from these population genetic data (and a *multitude* of methods for doing so!). Today, we'll apply some of the methods you've already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as "large"!—may present unique challenges. To do this, we'll work entirely in `R`.
 
-First, let's the packages you need. If you don't already have these installed, do that first.
+First, let's load the packages you need. If you don't already have these installed, do that first.
 ```{r, echo = TRUE, results = "hide", warning = FALSE, message = FALSE}
 library(phangorn)
 library(adegenet)
@@ -47,15 +47,15 @@ library(scales)
 
 For an easy, preliminary visualization of our data, let's build a neighbor-joining tree. This will (very quickly) estimate a topology from a distance matrix, which we'll calculate from our SNP data. There are many good reasons not to ultimately read too much into this topology, but it can provide a good jumping-off point to check our data.
 
-First, we'll read in one of the output files from the `ipyrad` de novo assembly. The file extension `u.snps.phy` tells us that this is a PHYLIP file consisting of one random SNP per locus.
-
-<div class="alert alert-info">
-  <strong>Discussion:</strong> Why might we only include one SNP per locus?
-</div>
+First, we'll read in one of the output files from the `ipyrad` *de novo* assembly. The file extension `u.snps.phy` tells us that this is a PHYLIP file consisting of one random SNP per locus.
 
 ```{r}
 ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.u.snps.phy", format="phy", type="DNA")
 ```
+
+<div class="alert alert-info">
+  <strong>Discussion:</strong> Why might we only include one SNP per locus?
+</div>
 
 Let's examine this object we've just created.
 ```{r}
@@ -89,7 +89,7 @@ plot.phylo(ubrucei_NJtree, cex=0.9, type='u',
 
 
 ## DAPC
-This neighbor-joining tree provides a hint that our collection localities may be genetically differentiated, but it's a very qualitative evaluation. Next, we'll try a method to estimate how many "populations" or "clusters" actually exist among these data.
+This neighbor-joining tree provides a hint that our collection localities may be genetically differentiated, but it's a very qualitative evaluation. Next, we'll try a method to estimate how many "populations" or "clusters" actually exist among these data. (Of course, understanding the biological meaning of a "population" or "cluster" here might also involve some critical thinking!)
 
 There are a variety of programs—with a diversity of underlying philosophies and statistical methods—to conduct this kind of analysis. For example, you used `Structure` in an earlier class. Today, we'll try a [discriminant analysis of principle components (DAPC)](https://bmcgenet.biomedcentral.com/articles/10.1186/1471-2156-11-94_). This method estimates the number of "genetic clusters" in the data and then estimates probabilistic individual assignments to each cluster. For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
 
@@ -116,7 +116,9 @@ This plot shows the cumulative variance explained by including progressively mor
 
 <center>![](figs/clust_Plot.jpeg){ width=40% }</center>
 
-This plot helps us evaluate how many "clusters" best represent our data; here, we're looking for when the BIC value is minimized (or stops decreasing dramatically). The BIC value continues to drop through *k* = 4, but then levels off. Go ahead and enter "4" into the prompt.
+This plot helps us evaluate how many "clusters" best represent our data; here, we're looking for when the BIC value is minimized (or stops decreasing dramatically). The BIC value continues to drop through *k* = 4, but then levels off. Go ahead and enter "4" into the prompt. (Note: This can be a rather subjective evaluation, and in practice, it's useful to evaluate more than one value of *k*. Here, our judgment is also biased by the fact that we know these samples came from four different collection localites!)
+
+That allowed us to interactively choose these parameters, but now that we know which we want to use, we could run the `find.clusters()` function again with these parameter values included. We'll also [set the seed](https://www.rdocumentation.org/packages/simEd/versions/1.0.3/topics/set.seed) to make sure this example is reproducible among all of us.
 
 ```{r}
 set.seed(1234)
@@ -142,15 +144,14 @@ legend(3.1, 1.1, legend=paste("Cluster", 1:4), fill=c("red","cornflowerblue","gr
   <strong>Discussion:</strong> What do these results suggest to you?
 </div>
 
-## Diversity, differention, etc.
+## Diversity, differentiation, and more
 
-This analysis provides some evidence of differentiation between populations of *Urspelerpes* at these different collection localities. But how different are they? And how genetically diverse are they? Note: because we have such small sample sizes here, we should interpret all of these results with caution!
+This analysis provides some evidence of differentiation between populations of *Urspelerpes* at these different collection localities. But how different are they? And how genetically diverse are they? **Note: because we have such small sample sizes here, we should interpret all of these results with caution!**
 
-Let's calculate some common summary statistics to characterize genetic diversity within and among these clusters. First, we can calculate pairwise F~st~ between each cluster.
+Let's calculate some common summary statistics to characterize genetic diversity within and among these clusters. First, we can calculate pairwise F~st~ between each cluster. To do that, we need to assign "populations" to our samples; we can use the cluster assignments from our DAPC. Remember that these numbers aren't in the same order as the collection localities (e.g., here, the first collection locality is "cluster 3").
 
 ```{r warning = FALSE, comment = NA}
-ubrucei_strdat$pop <- as.factor(c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)))
-
+ubrucei_strdat$pop <- ubrucei_dapc$grp
 (matFst <- pairwise.fst(ubrucei_strdat,res.type="matrix"))
 ```
 
@@ -167,16 +168,16 @@ ubrucei_stats <- basic.stats(ubrucei_strdat,diploid=TRUE,digits=3)
 We can plot H~s~ for each population. 
 ```{r, fig.height = 3, fig.align = "center", width = 200}
 par(mfrow=c(1,4))
-hist(ubrucei_stats$Hs[,1], col = "green", main = "site 1", 
+hist(ubrucei_stats$Hs[,1], col = "red", main = "cluster 1", 
      ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,1], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Hs[,2], col = "red", main = "site 2", 
+hist(ubrucei_stats$Hs[,2], col = "cornflowerblue", main = "cluster 2", 
      ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,2], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Hs[,3], col = "cornflowerblue", main = "site 3", 
+hist(ubrucei_stats$Hs[,3], col = "green", main = "cluster 3", 
      ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,3], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Hs[,4], col = "purple", main = "site 4", 
+hist(ubrucei_stats$Hs[,4], col = "purple", main = "cluster 4", 
      ylab = "# SNPs", xlab = "gene diversity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,4], na.rm = TRUE), 2)))
 ```
@@ -184,16 +185,16 @@ text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Hs[,4],
 ... and H~o~ for each population.
 ```{r, fig.height = 3, fig.align = "center", width = 200}
 par(mfrow=c(1,4))
-hist(ubrucei_stats$Ho[,1], col = "green", main = "site 1", 
+hist(ubrucei_stats$Ho[,1], col = "red", main = "cluster 1", 
      ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,1], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Ho[,2], col = "red", main = "site 2", 
+hist(ubrucei_stats$Ho[,2], col = "cornflowerblue", main = "cluster 2", 
      ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,2], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Ho[,3], col = "cornflowerblue", main = "site 3", 
+hist(ubrucei_stats$Ho[,3], col = "green", main = "cluster 3", 
      ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,3], na.rm = TRUE), 2)))
-hist(ubrucei_stats$Ho[,4], col = "purple", main = "site 4", 
+hist(ubrucei_stats$Ho[,4], col = "purple", main = "cluster 4", 
      ylab = "# SNPs", xlab = "observed heterozygosity", ylim = c(0,1000))
 text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,4], na.rm = TRUE), 2)))
 ```
@@ -203,7 +204,7 @@ text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,4],
 </div>
 
 ## Isolation-by-distance
-We may wonder whether the apparent differention between sampling localities can be explained by geographic distance. We can test for isolation-by-distance using a Mantel test. Because this is a rare, sensitive species, we won't use real coordinates, but I'll (generally) preserve the spatial relationship between sites and center them over [Sanford Stadium (Go Dawgs)](https://goo.gl/maps/9FsrhfEz9wj9ULPU9). Below are our artificial coordinates; note that for all samples within a site, the coordinates are the same.
+We may wonder whether the apparent differention between sampling localities can be explained by geographic distance. We can test for isolation-by-distance using a Mantel test. Because this is a rare, sensitive species, we won't use real coordinates, but I'll (generally) preserve the spatial relationship between sites and center them over [Sanford Stadium (go Dawgs!)](https://goo.gl/maps/9FsrhfEz9wj9ULPU9). Below are our artificial coordinates; note that for all samples within a site, the coordinates are the same.
 
 ```{r}
 coords <- rbind(c(33.949966,-83.374063), c(33.949966,-83.374063), c(33.949966,-83.374063),
@@ -212,26 +213,26 @@ coords <- rbind(c(33.949966,-83.374063), c(33.949966,-83.374063), c(33.949966,-8
                 c(33.949900, -83.372304), c(33.949900, -83.372304), c(33.949900, -83.372304))
 ```
 
-Here's a quick visualization of their positions:
+Here's a quick visualization of their positions to orient ourselves:
 ```{r, echo = FALSE}
 plot(coords[,2],coords[,1], xlim = c(min(coords[,2])-0.0005, max(coords[,2]+0.0005)), 
      ylim = c(min(coords[,1])-0.00025, max(coords[,1]+0.00025)), pch = 19, cex = 2,
      col = c(rep("green",3), rep("red",3), rep("cornflowerblue",3), rep("purple",3)),
      xlab = "longitude", ylab = "latitude")
-text(x=coords[c(1,4,7,10),2], y = coords[c(1,4,7,10),1], col = "white", labels = c(1,2,3,4))
+#text(x=coords[c(1,4,7,10),2], y = coords[c(1,4,7,10),1], col = "white", labels = c(1,2,3,4))
 ```
 
-...here is the actual Mantel test.
+Let's use the function `mantel.randtest` to conduct a Mantel test. We can examine the results of the test through the returned object (`mtest`) or visually by plotting them.
 ```{r}
 (mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords)))
-plot(mtest, nclass = 30)
+plot(mtest, nclass = 50)
 ```
 
 <div class="alert alert-info">
-  <strong>Discussion:</strong> What do these results mean?
+  <strong>Discussion:</strong> What do these results mean? Does this make sense?
 </div>
 
-We can visualize this relationship by plotting geographic distance against genetic distance.
+We can visualize the relationship between geographic distance and genetic distance by plotting these two variables.
 ```{r}
 plot(dist(coords),dist(ubrucei_strdat), pch = 19, col = alpha("black",0.3),
      xlab = "geographic distance", ylab = "genetic distance")
@@ -239,8 +240,10 @@ plot(dist(coords),dist(ubrucei_strdat), pch = 19, col = alpha("black",0.3),
 ```
 
 ## Optional exercise
-Now that we've completed these analyses using our de novo assembly, repeat them using the reference-based assembly.
+Now that we've completed these analyses using our *de novo* assembly, repeat them using the reference-based assembly.
 
 <div class="alert alert-info">
   <strong>Discussion:</strong> Do these results differ meaningfully?
 </div>
+
+Next week, we'll examine what additional information we can learn when we have a reference genome available.
