@@ -50,7 +50,7 @@ For an easy, preliminary visualization of our data, let's build a neighbor-joini
 First, we'll read in one of the output files from the `ipyrad` *de novo* assembly. The file extension `u.snps.phy` tells us that this is a PHYLIP file consisting of one random SNP per locus.
 
 ```{r}
-ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.u.snps.phy", format="phy", type="DNA")
+ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.usnps", format="phy", type="DNA")
 ```
 
 <div class="alert alert-info">
@@ -97,7 +97,7 @@ For this analysis, let's read in a different output file from `ipyrad`. The file
 
 ```{r results = "hide", warning = FALSE, message = FALSE}
 ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
-                         n.ind = 12, n.loc = 1131,
+                         n.ind = 12, n.loc = 1110,
                          onerowperind = FALSE, col.lab=1,
                          col.pop=0, NA.char="-9",col.other=0,
                          row.marknames=0)
@@ -112,7 +112,7 @@ ubrucei_clust <- find.clusters(ubrucei_strdat, max.n.clust = 5)
 
 <center>![](figs/PC_Plot.jpeg){ width=40% }</center>
 
-This plot shows the cumulative variance explained by including progressively more principal components. It looks like there's really no plateau of cumulative variance, so we can retain all 10 PCs. Enter "10" into the prompt.
+This plot shows the cumulative variance explained by including progressively more principal components. It looks like there's really no plateau of cumulative variance, so we can retain all 11 PCs. Enter "11" into the prompt.
 
 <center>![](figs/clust_Plot.jpeg){ width=40% }</center>
 
@@ -122,10 +122,10 @@ That allowed us to interactively choose these parameters, but now that we know w
 
 ```{r}
 set.seed(1234)
-ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 10, n.clust = 4)
+ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 11, n.clust = 4)
 ```
 
-Now, we'll conduct the discriminant analysis. Because we have a small number of PCs and clusters, we'll retain all of them here (i.e., enter "10" for `n.pca` and "3" for `n.da`).
+Now, we'll conduct the discriminant analysis. Because we have a small number of PCs and clusters, we'll retain all of them here (i.e., enter "11" for `n.pca` and "4" for `n.da`).
 ```{r}
 set.seed(1234)
 ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 10, n.da = 3)
@@ -162,7 +162,7 @@ ubrucei_strdat$pop <- ubrucei_dapc$grp
 Now, let's calculate some basic measures of genetic diversity. Let's use the within-population gene diversity (i.e., H~s~) and observed heterozygosity (H~o~) to get a glimpse of this. We can use the `basic.stats()` function in the `hierfstat` package.
 
 ```{r, fig.height = 3, fig.align = "center", width = 200}
-ubrucei_stats <- basic.stats(ubrucei_strdat,diploid=TRUE,digits=3)
+ubrucei_stats <- basic.stats(ubrucei_strdat, diploid=TRUE, digits=3)
 ```
 
 We can plot H~s~ for each population. 
