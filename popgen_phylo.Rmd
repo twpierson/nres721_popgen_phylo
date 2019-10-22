@@ -29,11 +29,11 @@ options(width=200)
 ```
 
 <div class="alert alert-danger">
-  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system. **Students, you can download all of the data we'll use from the `/data` directory in the Github repository [here](https://github.com/twpierson/nres721_popgen_phylo).**
+  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system. **Students, you can download all of the data we'll use from the `/data` directory in the Github repository [here](https://github.com/twpierson/nres721_popgen_phylo) or from Dropbox by click [here](https://www.dropbox.com/sh/06bz7nv0fd4fnsb/AAAExaLKoJk2xqna9_mDtj4Fa?dl=1).**
 </div>
 
 ## Introduction
-In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (*Urspelerpes brucei*) in `ipyrad`. We ended up with a total of 948 loci (and 1131 SNPs) in our *de novo* assembly and 641 loci (and 753 SNPs) in our reference-based assembly. As you've discussed earlier in the semester, there are many inferences you can make from these population genetic data (and a *multitude* of methods for doing so!). Today, we'll apply some of the methods you've already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as "large"!—may present unique challenges. To do this, we'll work entirely in `R`.
+In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (*Urspelerpes brucei*) in `ipyrad`. We ended up with a total of 884 loci (and 1110 SNPs) in our *de novo* assembly and 761 loci (and 1755 SNPs) in our reference-based assembly. As you've discussed earlier in the semester, there are many inferences you can make from these population genetic data (and a *multitude* of methods for doing so!). Today, we'll apply some of the methods you've already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as "large"!—may present unique challenges. To do this, we'll work entirely in `R`.
 
 First, let's load the packages you need. If you don't already have these installed, do that first.
 ```{r, echo = TRUE, results = "hide", warning = FALSE, message = FALSE}

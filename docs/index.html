@@ -1520,11 +1520,11 @@ pre code, pre, code {
 }
 </style>
 <div class="alert alert-danger">
-<p><strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We’ll do these exercises entirely in <code>R</code>, so folks should be able to follow along regardless of their operating system. <strong>Students, you can download all of the data we’ll use from the <code>/data</code> directory in the Github repository <a href="https://github.com/twpierson/nres721_popgen_phylo">here</a>.</strong></p>
+<p><strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We’ll do these exercises entirely in <code>R</code>, so folks should be able to follow along regardless of their operating system. <strong>Students, you can download all of the data we’ll use from the <code>/data</code> directory in the Github repository <a href="https://github.com/twpierson/nres721_popgen_phylo">here</a> or from Dropbox by click <a href="https://www.dropbox.com/sh/06bz7nv0fd4fnsb/AAAExaLKoJk2xqna9_mDtj4Fa?dl=1">here</a>.</strong></p>
 </div>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (<em>Urspelerpes brucei</em>) in <code>ipyrad</code>. We ended up with a total of 948 loci (and 1131 SNPs) in our <em>de novo</em> assembly and 641 loci (and 753 SNPs) in our reference-based assembly. As you’ve discussed earlier in the semester, there are many inferences you can make from these population genetic data (and a <em>multitude</em> of methods for doing so!). Today, we’ll apply some of the methods you’ve already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as “large”!—may present unique challenges. To do this, we’ll work entirely in <code>R</code>.</p>
+<p>In the last tutorial, we assembled a RADseq-style (RADcap) dataset from the patch-nosed salamander (<em>Urspelerpes brucei</em>) in <code>ipyrad</code>. We ended up with a total of 884 loci (and 1110 SNPs) in our <em>de novo</em> assembly and 761 loci (and 1755 SNPs) in our reference-based assembly. As you’ve discussed earlier in the semester, there are many inferences you can make from these population genetic data (and a <em>multitude</em> of methods for doing so!). Today, we’ll apply some of the methods you’ve already learned and discuss how large datasets—and in 2019, several hundred loci barely qualifies as “large”!—may present unique challenges. To do this, we’ll work entirely in <code>R</code>.</p>
 <p>First, let’s load the packages you need. If you don’t already have these installed, do that first.</p>
 <pre class="r"><code>library(phangorn)
 library(adegenet)
