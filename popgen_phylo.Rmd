@@ -47,7 +47,7 @@ library(scales)
 
 For an easy, preliminary visualization of our data, let's build a neighbor-joining tree. This will (very quickly) estimate a topology from a distance matrix, which we'll calculate from our SNP data. There are many good reasons not to ultimately read too much into this topology, but it can provide a good jumping-off point to check our data.
 
-First, we'll read in one of the output files from the `ipyrad` *de novo* assembly. The file extension `u.snps.phy` tells us that this is a PHYLIP file consisting of one random SNP per locus.
+First, we'll read in one of the output files from the `ipyrad` *de novo* assembly. The file extension `usnps` tells us that this is a PHYLIP file consisting of one random SNP per locus.
 
 ```{r}
 ubrucei_phydat <- read.phyDat("data/ubrucei_denovo.usnps", format="phy", type="DNA")
@@ -63,7 +63,7 @@ ubrucei_phydat
 ```
 
 <div class="alert alert-info">
-  <strong>Discussion:</strong> This suggests that we have 417 "character site patterns". What does that mean? Why is this number smaller than the number of loci we have?
+  <strong>Discussion:</strong> This suggests that we have 396 "character site patterns". What does that mean? Why is this number smaller than the number of loci we have?
 </div>
 
 From these data, we'll first create a distance matrix.
@@ -110,11 +110,11 @@ set.seed(1234)
 ubrucei_clust <- find.clusters(ubrucei_strdat, max.n.clust = 5)
 ```
 
-<center>![](figs/PC_Plot.jpeg){ width=40% }</center>
+<center>![](figs/PC_Plot.jpeg){ width=60% }</center>
 
 This plot shows the cumulative variance explained by including progressively more principal components. It looks like there's really no plateau of cumulative variance, so we can retain all 11 PCs. Enter "11" into the prompt.
 
-<center>![](figs/clust_Plot.jpeg){ width=40% }</center>
+<center>![](figs/clust_Plot.jpeg){ width=60% }</center>
 
 This plot helps us evaluate how many "clusters" best represent our data; here, we're looking for when the BIC value is minimized (or stops decreasing dramatically). The BIC value continues to drop through *k* = 4, but then levels off. Go ahead and enter "4" into the prompt. (Note: This can be a rather subjective evaluation, and in practice, it's useful to evaluate more than one value of *k*. Here, our judgment is also biased by the fact that we know these samples came from four different collection localites!)
 
