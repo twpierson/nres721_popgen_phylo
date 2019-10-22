@@ -29,7 +29,7 @@ options(width=200)
 ```
 
 <div class="alert alert-danger">
-  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system. **Students, you can download all of the data we'll use from the `/data` directory in the Github repository [here](https://github.com/twpierson/nres721_popgen_phylo) or from Dropbox by click [here](https://www.dropbox.com/sh/06bz7nv0fd4fnsb/AAAExaLKoJk2xqna9_mDtj4Fa?dl=1).**
+  <strong>Note:</strong> This tutorial is written to teach some basic population genomic analyses for NRES 721. We'll do these exercises entirely in `R`, so folks should be able to follow along regardless of their operating system. **Students, you can download all of the data we'll use by using the `svn checkout https://github.com/twpierson/nres721_popgen_phylo/trunk/data` command in your working directory, from the `/data` directory in the Github repository [here](https://github.com/twpierson/nres721_popgen_phylo), or from Dropbox by clicking [here](https://www.dropbox.com/sh/06bz7nv0fd4fnsb/AAAExaLKoJk2xqna9_mDtj4Fa?dl=1).**
 </div>
 
 ## Introduction
@@ -41,6 +41,11 @@ library(phangorn)
 library(adegenet)
 library(hierfstat)
 library(scales)
+```
+
+Then, set your working directory. This should be the folder in which you have the `\data` directory we downloaded earlier.
+```{r, eval = FALSE}
+setwd("[your working directory]")
 ```
 
 ## Neighbor-joining tree
@@ -63,7 +68,7 @@ ubrucei_phydat
 ```
 
 <div class="alert alert-info">
-  <strong>Discussion:</strong> This suggests that we have 396 "character site patterns". What does that mean? Why is this number smaller than the number of loci we have?
+  <strong>Discussion:</strong> This suggests that we have 396 "character patterns". What does that mean? Why is this number smaller than the number of loci we have?
 </div>
 
 From these data, we'll first create a distance matrix.
@@ -91,9 +96,9 @@ plot.phylo(ubrucei_NJtree, cex=0.9, type='u',
 ## DAPC
 This neighbor-joining tree provides a hint that our collection localities may be genetically differentiated, but it's a very qualitative evaluation. Next, we'll try a method to estimate how many "populations" or "clusters" actually exist among these data. (Of course, understanding the biological meaning of a "population" or "cluster" here might also involve some critical thinking!)
 
-There are a variety of programs—with a diversity of underlying philosophies and statistical methods—to conduct this kind of analysis. For example, you used `Structure` in an earlier class. Today, we'll try a [discriminant analysis of principle components (DAPC)](https://bmcgenet.biomedcentral.com/articles/10.1186/1471-2156-11-94_). This method estimates the number of "genetic clusters" in the data and then estimates probabilistic individual assignments to each cluster. For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
+There are a variety of programs—with a diversity of underlying philosophies and statistical methods—to conduct this kind of analysis. For example, you used `Structure` in an earlier class. Today, we'll try a [discriminant analysis of principal components (DAPC)](https://bmcgenet.biomedcentral.com/articles/10.1186/1471-2156-11-94_). This method estimates the number of "genetic clusters" in the data and then estimates probabilistic individual assignments to each cluster. For a much more detailed description of these analyses and a tutorial of how to conduct them, see [here](http://adegenet.r-forge.r-project.org/files/tutorial-dapc.pdf).
 
-For this analysis, let's read in a different output file from `ipyrad`. The file extension (`.str`) tells us that this is a Structure-formatted output file, and it contains data for all variable sites. We need to provide the `read.structure()` function a few more pieces of information (e.g., number of individuals, number of loci), which we can glean from the summary statistics file we viewed in the last tutorial.
+For this analysis, let's read in a different output file from `ipyrad`. The file extension (`.str`) tells us that this is a `Structure`-formatted output file, and it contains data for all variable sites. We need to provide the `read.structure()` function a few more pieces of information (e.g., number of individuals, number of loci), which we can glean from the summary statistics file we viewed in the last tutorial.
 
 ```{r results = "hide", warning = FALSE, message = FALSE}
 ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
@@ -103,7 +108,7 @@ ubrucei_strdat <- read.structure(file="data/ubrucei_denovo.str",
                          row.marknames=0)
 ```
 
-The first step of the DAPC is to estimate the number of clusters. We'll use the `find.clusters()` function to do this, and it'll display interactive plots to help use choose the numbers of PCs to retain and the number of clusters.
+The first step of the DAPC is to estimate the number of clusters. We'll use the `find.clusters()` function to do this, and it'll display interactive plots to help use choose the numbers of PCs to retain and the number of clusters. We'll also [set the seed](https://www.rdocumentation.org/packages/simEd/versions/1.0.3/topics/set.seed) to make sure this example is reproducible among all of us.
 
 ```{r, eval = FALSE}
 set.seed(1234)
@@ -118,20 +123,22 @@ This plot shows the cumulative variance explained by including progressively mor
 
 This plot helps us evaluate how many "clusters" best represent our data; here, we're looking for when the BIC value is minimized (or stops decreasing dramatically). The BIC value continues to drop through *k* = 4, but then levels off. Go ahead and enter "4" into the prompt. (Note: This can be a rather subjective evaluation, and in practice, it's useful to evaluate more than one value of *k*. Here, our judgment is also biased by the fact that we know these samples came from four different collection localites!)
 
-That allowed us to interactively choose these parameters, but now that we know which we want to use, we could run the `find.clusters()` function again with these parameter values included. We'll also [set the seed](https://www.rdocumentation.org/packages/simEd/versions/1.0.3/topics/set.seed) to make sure this example is reproducible among all of us.
+That allowed us to interactively choose these parameters, but now that we know which we want to use, we could run the `find.clusters()` function again with these parameter values included.
 
 ```{r}
 set.seed(1234)
 ubrucei_clust <- find.clusters(ubrucei_strdat, n.pca = 11, n.clust = 4)
 ```
 
-Now, we'll conduct the discriminant analysis. Because we have a small number of PCs and clusters, we'll retain all of them here (i.e., enter "11" for `n.pca` and "4" for `n.da`).
+Now, we'll conduct the discriminant analysis. Because we have a small number of PCs and clusters, we'll retain all of them here (i.e., enter "11" for `n.pca` and "3" for `n.da`).
+
 ```{r}
 set.seed(1234)
-ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 10, n.da = 3)
+ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 11, n.da = 3)
 ```
 
-We can glean lots of interesting information from this analysis. Perhaps the most important result for us is in the "posterior group assignments". We can plot these results in a Structure-like barplot.
+We can glean lots of interesting information from this analysis. Perhaps the most important result for us is in the "posterior group assignments". We can plot these results in a `Structure`-like barplot.
+
 ```{r}
 par(xpd = TRUE)
 compoplot(ubrucei_dapc, xlab="individuals", 
@@ -141,7 +148,7 @@ legend(3.1, 1.1, legend=paste("Cluster", 1:4), fill=c("red","cornflowerblue","gr
 ```
 
 <div class="alert alert-info">
-  <strong>Discussion:</strong> What do these results suggest to you?
+  <strong>Discussion:</strong> What do these results suggest to you? Are they consistent with the neighbor-joining tree?
 </div>
 
 ## Diversity, differentiation, and more
@@ -154,10 +161,6 @@ Let's calculate some common summary statistics to characterize genetic diversity
 ubrucei_strdat$pop <- ubrucei_dapc$grp
 (matFst <- pairwise.fst(ubrucei_strdat,res.type="matrix"))
 ```
-
-<div class="alert alert-info">
-  <strong>Discussion:</strong> Are these results consistent with our visualization in the neighbor-joining tree?
-</div>
 
 Now, let's calculate some basic measures of genetic diversity. Let's use the within-population gene diversity (i.e., H~s~) and observed heterozygosity (H~o~) to get a glimpse of this. We can use the `basic.stats()` function in the `hierfstat` package.
 
@@ -200,7 +203,7 @@ text(x = 0.6, y = 600, labels = paste("mean =", round(mean(ubrucei_stats$Ho[,4],
 ```
 
 <div class="alert alert-info">
-  <strong>Discussion:</strong> What patterns do you detect here?
+  <strong>Discussion:</strong> What patterns do you detect here? Are they consistent?
 </div>
 
 ## Isolation-by-distance
@@ -222,7 +225,8 @@ plot(coords[,2],coords[,1], xlim = c(min(coords[,2])-0.0005, max(coords[,2]+0.00
 #text(x=coords[c(1,4,7,10),2], y = coords[c(1,4,7,10),1], col = "white", labels = c(1,2,3,4))
 ```
 
-Let's use the function `mantel.randtest` to conduct a Mantel test. We can examine the results of the test through the returned object (`mtest`) or visually by plotting them.
+Let's use the function `mantel.randtest` to conduct a Mantel test. **Note: for speed and simplicity, we're going to use simple euclidean distances calculated with the `dist()` function, but we could instead use F~st~, etc.** We can examine the results of the test through the returned object (`mtest`) or visually by plotting them.
+
 ```{r}
 (mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords)))
 plot(mtest, nclass = 50)
@@ -233,14 +237,14 @@ plot(mtest, nclass = 50)
 </div>
 
 We can visualize the relationship between geographic distance and genetic distance by plotting these two variables.
+
 ```{r}
 plot(dist(coords),dist(ubrucei_strdat), pch = 19, col = alpha("black",0.3),
      xlab = "geographic distance", ylab = "genetic distance")
-
 ```
 
 ## Optional exercise
-Now that we've completed these analyses using our *de novo* assembly, repeat them using the reference-based assembly.
+Now that we've completed these analyses using our *de novo* assembly, repeat them using the reference-based assembly. **Hint: the `.str` file includes the reference, so you'll need to modify a few functions (and later subset the data) to remove this.**
 
 <div class="alert alert-info">
   <strong>Discussion:</strong> Do these results differ meaningfully?
