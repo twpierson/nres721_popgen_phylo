@@ -139,7 +139,15 @@ ubrucei_dapc <- dapc(ubrucei_strdat, ubrucei_clust$grp, n.pca = 11, n.da = 3)
 
 We can glean lots of interesting information from this analysis. Perhaps the most important result for us is in the "posterior group assignments". We can plot these results in a `Structure`-like barplot.
 
-```{r}
+```{r, eval = FALSE}
+par(xpd = TRUE)
+compoplot(ubrucei_dapc, xlab="individuals", 
+          col = c("red","cornflowerblue","green","purple"), legend = FALSE,
+          show.lab = TRUE)
+legend(-0.3, 1.1, legend=paste("Cluster", 1:4), fill=c("red","cornflowerblue","green","purple"), ncol = 4, cex = 0.7)
+```
+
+```{r, echo = FALSE, eval = TRUE}
 par(xpd = TRUE)
 compoplot(ubrucei_dapc, xlab="individuals", 
           col = c("red","cornflowerblue","green","purple"), legend = FALSE,
@@ -229,6 +237,8 @@ Let's use the function `mantel.randtest` to conduct a Mantel test. **Note: for s
 
 ```{r}
 (mtest <- mantel.randtest(dist(ubrucei_strdat), dist(coords)))
+
+par(mfrow=c(1,1))
 plot(mtest, nclass = 50)
 ```
 
